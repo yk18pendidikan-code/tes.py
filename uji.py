@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import re
 
 st.set_page_config(
     page_title="Tes Minat & Bakat (RIASEC)",
@@ -10,6 +11,7 @@ st.title("Tes Minat & Bakat Neutron Murangan - Model RIASEC")
 st.write("Jawablah setiap pernyataan sesuai dengan diri Anda.")
 st.write("Skala: 1 = Sangat Tidak Sesuai | 5 = Sangat Sesuai")
 
+# Pertanyaan berdasarkan RIASEC
 questions = {
     "R": [
         "Saya senang bekerja dengan alat atau mesin.",
@@ -55,6 +57,10 @@ questions = {
     ]
 }
 
+# Fungsi untuk escape karakter khusus agar aman di JS frontend
+def escape_label(text):
+    return re.sub(r'([.*+?^${}()|\[\]\\])', r'\\\1', text)
+
 scores = {key: 0 for key in questions.keys()}
 
 st.subheader("Silakan jawab pertanyaan berikut:")
@@ -62,8 +68,9 @@ st.subheader("Silakan jawab pertanyaan berikut:")
 for category, qs in questions.items():
     st.markdown(f"### Bagian {category}")
     for i, q in enumerate(qs):
+        safe_label = escape_label(q)  # escape karakter khusus
         response = st.slider(
-            label=q,
+            label=safe_label,
             min_value=1,
             max_value=5,
             value=3,
