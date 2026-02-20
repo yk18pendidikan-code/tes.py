@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import re
 
 st.set_page_config(
     page_title="Tes Minat & Bakat (RIASEC)",
@@ -62,12 +63,14 @@ st.subheader("Silakan jawab pertanyaan berikut:")
 for category, qs in questions.items():
     st.markdown(f"### Bagian {category}")
     for i, q in enumerate(qs):
+        # Buat key aman untuk slider (hapus spasi & karakter non-alfanumerik)
+        safe_key = re.sub(r"[^\w]", "_", f"{category}_{i}_{q[:10]}")
         response = st.slider(
-            label=q,
+            label=q,  # tetap tampil lengkap di UI
             min_value=1,
             max_value=5,
             value=3,
-            key=f"{category}_{i}"
+            key=safe_key
         )
         scores[category] += response
 
