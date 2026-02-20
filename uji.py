@@ -62,11 +62,11 @@ st.subheader("Silakan jawab pertanyaan berikut:")
 for category, qs in questions.items():
     st.markdown(f"### Bagian {category}")
     for i, q in enumerate(qs):
-        st.markdown(f"**{q}**")  # tampilkan pertanyaan sebagai teks
-        response = st.radio(
-            label="Pilih jawaban",
-            options=[1, 2, 3, 4, 5],
-            index=2,
+        response = st.slider(
+            label=q,
+            min_value=1,
+            max_value=5,
+            value=3,
             key=f"{category}_{i}"
         )
         scores[category] += response
@@ -90,4 +90,5 @@ if st.button("Lihat Hasil"):
 
     st.success(f"Tipe dominan Anda adalah: {dominant}")
     st.info(f"Rekomendasi bidang yang cocok: {rekomendasi[dominant]}")
+
     st.caption("Tes ini berbasis teori RIASEC (Holland Code) dan bersifat eksploratif.")
