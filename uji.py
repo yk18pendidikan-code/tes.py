@@ -6,7 +6,7 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("Tes Minat & Bakat - Model RIASEC")
+st.title("Tes Minat & Bakat Neutron Murangan - Model RIASEC")
 st.write("Jawablah setiap pernyataan sesuai dengan diri Anda.")
 st.write("Skala: 1 = Sangat Tidak Sesuai | 5 = Sangat Sesuai")
 
