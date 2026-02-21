@@ -5,40 +5,29 @@ from fpdf import FPDF
 from io import BytesIO
 
 st.set_page_config(page_title="Tes Pemilihan Jurusan SMA", layout="wide")
-st.title("🎓 Tes Pemilihan Jurusan SMA – Neutron Murangan")
+st.title("🎓 Tes Pemilihan Jurusan SMA – Profesional")
 
-# =========================
-# SISTEM AKSES & BATAS 1X
-# =========================
+# ----------------------------
+# Kode akses
+# ----------------------------
+ACCESS_CODE = "neutronmurangan"
 
-AKSES_KODE = "neutronmurangan"
+if "access_granted" not in st.session_state:
+    st.session_state.access_granted = False
 
-if "akses_granted" not in st.session_state:
-    st.session_state.akses_granted = False
-
-if "submitted_once" not in st.session_state:
-    st.session_state.submitted_once = False
-
-# Jika belum login
-if not st.session_state.akses_granted:
-    st.title("🔐 Akses Tes RIASEC Neutron Murangan")
-    kode_input = st.text_input("Masukkan Kode Akses", type="password")
-
-    if st.button("Masuk"):
-        if kode_input == AKSES_KODE:
-            st.session_state.akses_granted = True
-            st.success("Akses diterima ✅")
-            st.rerun()
+if not st.session_state.access_granted:
+    kode = st.text_input("Masukkan Kode Akses:", type="password")
+    if st.button("🔑 Submit"):
+        if kode.strip() == ACCESS_CODE:
+            st.session_state.access_granted = True
+            st.success("Kode valid! Anda dapat melanjutkan tes.")
         else:
-            st.error("Kode akses salah ❌")
+            st.error("Kode salah! Silakan coba lagi.")
+    st.stop()  # Hentikan eksekusi sampai kode valid
 
-    st.stop()
-
-# Jika sudah pernah submit
-if st.session_state.submitted_once:
-    st.warning("⚠️ Anda sudah mengerjakan tes ini. Tes hanya dapat dikerjakan 1 kali.")
-    st.stop()
-
+# ----------------------------
+# Tes Slider
+# ----------------------------
 st.write("""
 Geser slider sesuai dengan diri Anda:
 
@@ -49,23 +38,15 @@ Geser slider sesuai dengan diri Anda:
 5 = Sangat Sesuai
 """)
 
-# ----------------------------
-# Pertanyaan
-# ----------------------------
 questions = [
-    # IPA
     {"q": "Saya menyukai Matematika.", "type": "IPA"},
     {"q": "Saya mudah memahami rumus dan perhitungan.", "type": "IPA"},
     {"q": "Saya tertarik dengan eksperimen sains.", "type": "IPA"},
     {"q": "Saya suka pelajaran Fisika atau Biologi.", "type": "IPA"},
-
-    # IPS
     {"q": "Saya tertarik dengan isu sosial dan ekonomi.", "type": "IPS"},
     {"q": "Saya suka berdiskusi tentang masyarakat dan politik.", "type": "IPS"},
     {"q": "Saya menikmati pelajaran sejarah/geografi.", "type": "IPS"},
     {"q": "Saya tertarik memahami perilaku manusia.", "type": "IPS"},
-
-    # Bahasa
     {"q": "Saya suka menulis cerita atau artikel.", "type": "Bahasa"},
     {"q": "Saya mudah menghafal kosakata bahasa asing.", "type": "Bahasa"},
     {"q": "Saya tertarik mempelajari budaya dan sastra.", "type": "Bahasa"},
@@ -124,12 +105,12 @@ if st.button("🔍 Lihat Hasil & Rekomendasi"):
     st.success(f"{main} ({sorted_df.iloc[0]['Persentase (%)']:.1f}%)")
 
     st.subheader("📚 Program Studi Cocok")
-    for p in prodi_map[main]:
-        st.write(f"✅ {p} (Kecocokan ± {sorted_df.iloc[0]['Persentase (%)']:.0f}%)")
+    for idx, p in enumerate(prodi_map[main], start=1):
+        st.write(f"{idx}. {p} (Kecocokan ± {sorted_df.iloc[0]['Persentase (%)']:.0f}%)")
 
     st.subheader("🔄 Alternatif Jurusan Kedua")
-    for p in prodi_map[second][:5]:
-        st.write(f"➡ {p}")
+    for idx, p in enumerate(prodi_map[second][:5], start=1):
+        st.write(f"{idx}. {p}")
 
     # ----------------------------
     # Export PDF Laporan (Cloud-Safe)
@@ -142,15 +123,14 @@ if st.button("🔍 Lihat Hasil & Rekomendasi"):
     pdf.ln(10)
     pdf.set_font("Arial", "", 12)
 
-    # Skor
     for i, row in df.iterrows():
         pdf.cell(0,8,f"{row['Jurusan']}: {row['Persentase (%)']:.1f}%", ln=True)
     pdf.ln(5)
 
     pdf.cell(0,8,f"Jurusan Dominan: {main}", ln=True)
     pdf.cell(0,8,"Program Studi Cocok:", ln=True)
-    for p in prodi_map[main]:
-        pdf.cell(0,8,f"- {p}", ln=True)
+    for idx, p in enumerate(prodi_map[main], start=1):
+        pdf.cell(0,8,f"{idx}. {p}", ln=True)
 
     pdf.output(pdf_buffer)
     pdf_buffer.seek(0)
