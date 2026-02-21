@@ -1,13 +1,13 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import plotly.express as px
 
 st.set_page_config(page_title="Tes Bakat Diferensial (DAT)", layout="wide")
 
 st.title("🧠 Tes Bakat Diferensial (DAT)")
 st.write("""
-Tes ini mengukur kemampuan spesifik (aptitude):
+Tes ini mengukur 5 kemampuan spesifik:
 - Verbal Reasoning
 - Numerical Ability
 - Abstract Reasoning
@@ -15,157 +15,109 @@ Tes ini mengukur kemampuan spesifik (aptitude):
 - Spatial Ability
 """)
 
-# -----------------------------
+# ----------------------------
 # BANK SOAL
-# -----------------------------
+# ----------------------------
 
 questions = {
     "Verbal Reasoning": [
-        {
-            "question": "Antonim dari 'Optimis' adalah:",
-            "options": ["Pesimis", "Semangat", "Percaya", "Yakin"],
-            "answer": "Pesimis"
-        },
-        {
-            "question": "Kalimat yang paling tepat secara tata bahasa:",
-            "options": [
-                "Dia pergi ke pasar kemarin.",
-                "Dia kemarin pergi ke pasar akan.",
-                "Pergi dia pasar kemarin.",
-                "Kemarin pasar dia pergi akan."
-            ],
-            "answer": "Dia pergi ke pasar kemarin."
-        }
+        {"q": "Antonim dari 'Optimis' adalah:", "o": ["Pesimis", "Yakin", "Semangat", "Percaya"], "a": "Pesimis"},
+        {"q": "Sinonim dari 'Cermat' adalah:", "o": ["Ceroboh", "Teliti", "Cepat", "Lambat"], "a": "Teliti"}
     ],
     "Numerical Ability": [
-        {
-            "question": "12 + 15 x 2 = ?",
-            "options": ["54", "42", "30", "39"],
-            "answer": "42"
-        },
-        {
-            "question": "Jika 25% dari 200 adalah:",
-            "options": ["25", "50", "75", "100"],
-            "answer": "50"
-        }
+        {"q": "12 + 15 x 2 =", "o": ["54", "42", "30", "39"], "a": "42"},
+        {"q": "25% dari 200 =", "o": ["25", "50", "75", "100"], "a": "50"}
     ],
     "Abstract Reasoning": [
-        {
-            "question": "Pola angka: 3, 6, 12, 24, ...",
-            "options": ["36", "48", "30", "60"],
-            "answer": "48"
-        },
-        {
-            "question": "A, C, F, J, ... huruf berikutnya?",
-            "options": ["O", "N", "P", "M"],
-            "answer": "O"
-        }
+        {"q": "Pola: 3, 6, 12, 24, ...", "o": ["36", "48", "30", "60"], "a": "48"},
+        {"q": "A, C, F, J, ...", "o": ["O", "N", "P", "M"], "a": "O"}
     ],
     "Mechanical Reasoning": [
-        {
-            "question": "Jika gaya diperbesar, maka percepatan akan:",
-            "options": ["Tetap", "Berkurang", "Bertambah", "Hilangkan"],
-            "answer": "Bertambah"
-        },
-        {
-            "question": "Katrol tetap berfungsi untuk:",
-            "options": [
-                "Mengurangi gaya",
-                "Mengubah arah gaya",
-                "Menambah berat",
-                "Menghilangkan beban"
-            ],
-            "answer": "Mengubah arah gaya"
-        }
+        {"q": "Jika gaya diperbesar maka percepatan:", "o": ["Tetap", "Berkurang", "Bertambah", "Hilang"], "a": "Bertambah"},
+        {"q": "Katrol tetap berfungsi untuk:", "o": ["Mengurangi gaya", "Mengubah arah gaya", "Menambah berat", "Menghilangkan beban"], "a": "Mengubah arah gaya"}
     ],
     "Spatial Ability": [
-        {
-            "question": "Kubus memiliki berapa rusuk?",
-            "options": ["8", "12", "6", "10"],
-            "answer": "12"
-        },
-        {
-            "question": "Bangun 3D dari lingkaran yang diputar adalah:",
-            "options": ["Kubus", "Tabung", "Prisma", "Balok"],
-            "answer": "Tabung"
-        }
+        {"q": "Kubus memiliki berapa rusuk?", "o": ["8", "12", "6", "10"], "a": "12"},
+        {"q": "Bangun 3D dari lingkaran diputar:", "o": ["Kubus", "Tabung", "Prisma", "Balok"], "a": "Tabung"}
     ]
 }
 
-# -----------------------------
+# ----------------------------
 # FORM TES
-# -----------------------------
+# ----------------------------
 
 st.header("📋 Jawab Semua Pertanyaan")
 
 scores = {}
-total_questions = {}
+total_questions = sum(len(qs) for qs in questions.values())
+answered = 0
 
 for category, qs in questions.items():
     st.subheader(f"🔹 {category}")
     score = 0
-    total_questions[category] = len(qs)
     
-    for i, q in enumerate(qs):
+    for i, item in enumerate(qs):
         answer = st.radio(
-            q["question"],
-            q["options"],
+            item["q"],
+            item["o"],
             key=f"{category}_{i}"
         )
-        if answer == q["answer"]:
+        if answer:
+            answered += 1
+        if answer == item["a"]:
             score += 1
     
     scores[category] = score
 
-# -----------------------------
+progress = answered / total_questions
+st.progress(progress)
+
+# ----------------------------
 # HASIL
-# -----------------------------
+# ----------------------------
 
 if st.button("🔍 Lihat Hasil Tes"):
     st.success("Tes selesai! Berikut hasil Anda:")
 
     df = pd.DataFrame({
-        "Kategori": scores.keys(),
-        "Skor": scores.values(),
-        "Maksimal": total_questions.values()
+        "Kategori": list(scores.keys()),
+        "Skor": list(scores.values())
     })
 
+    df["Maksimal"] = 2
     df["Persentase (%)"] = (df["Skor"] / df["Maksimal"]) * 100
+
     st.dataframe(df)
 
-    # -----------------------------
-    # RADAR CHART
-    # -----------------------------
+    # ----------------------------
+    # RADAR CHART INTERAKTIF
+    # ----------------------------
 
-    categories = list(scores.keys())
-    values = df["Persentase (%)"].tolist()
-    values += values[:1]
+    fig = px.line_polar(
+        df,
+        r="Persentase (%)",
+        theta="Kategori",
+        line_close=True
+    )
 
-    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
-    angles += angles[:1]
+    fig.update_traces(fill='toself')
+    fig.update_layout(
+        polar=dict(radialaxis=dict(visible=True, range=[0,100])),
+        showlegend=False
+    )
 
-    fig, ax = plt.subplots(figsize=(6,6), subplot_kw=dict(polar=True))
-    ax.plot(angles, values)
-    ax.fill(angles, values, alpha=0.25)
+    st.plotly_chart(fig, use_container_width=True)
 
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories)
-    ax.set_yticklabels([])
-    ax.set_title("Profil Bakat Diferensial (%)")
-
-    st.pyplot(fig)
-
-    # -----------------------------
+    # ----------------------------
     # INTERPRETASI
-    # -----------------------------
-
-    st.header("📊 Interpretasi")
+    # ----------------------------
 
     strongest = df.sort_values("Persentase (%)", ascending=False).iloc[0]
 
-    st.write(f"💡 Kemampuan paling dominan Anda adalah **{strongest['Kategori']}** ({strongest['Persentase (%)']:.0f}%).")
+    st.header("📊 Interpretasi Hasil")
+    st.write(f"💡 Kemampuan paling dominan Anda adalah **{strongest['Kategori']}** ({strongest['Persentase (%)']:.0f}%)")
 
-    interpretations = {
+    interpretation_map = {
         "Verbal Reasoning": "Cocok untuk hukum, komunikasi, pendidikan, sastra.",
         "Numerical Ability": "Cocok untuk teknik, akuntansi, statistika, data science.",
         "Abstract Reasoning": "Cocok untuk IT, programming, analisis sistem, riset.",
@@ -173,6 +125,5 @@ if st.button("🔍 Lihat Hasil Tes"):
         "Spatial Ability": "Cocok untuk arsitektur, desain, teknik sipil."
     }
 
-    st.info(interpretations[strongest["Kategori"]])
-
-    st.warning("Catatan: Ini adalah simulasi sederhana Tes DAT dan bukan tes psikologi resmi.")
+    st.info(interpretation_map[strongest["Kategori"]])
+    st.warning("Ini adalah simulasi sederhana dan bukan tes psikologi resmi.")
