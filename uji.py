@@ -6,15 +6,6 @@ from io import BytesIO
 
 st.set_page_config(page_title="Tes Pemilihan Jurusan SMA", layout="wide")
 st.title("🎓 Tes Pemilihan Jurusan SMA – Neutron Murangan")
-st.write("""
-Geser slider sesuai dengan diri Anda:
-
-1 = Sangat Tidak Sesuai  
-2 = Tidak Sesuai  
-3 = Netral  
-4 = Sesuai  
-5 = Sangat Sesuai
-""")
 
 # =========================
 # SISTEM AKSES & BATAS 1X
@@ -48,6 +39,15 @@ if st.session_state.submitted_once:
     st.warning("⚠️ Anda sudah mengerjakan tes ini. Tes hanya dapat dikerjakan 1 kali.")
     st.stop()
 
+st.write("""
+Geser slider sesuai dengan diri Anda:
+
+1 = Sangat Tidak Sesuai  
+2 = Tidak Sesuai  
+3 = Netral  
+4 = Sesuai  
+5 = Sangat Sesuai
+""")
 
 # ----------------------------
 # Pertanyaan
