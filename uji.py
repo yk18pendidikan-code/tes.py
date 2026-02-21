@@ -1,129 +1,74 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
 
-st.set_page_config(page_title="Tes Bakat Diferensial (DAT)", layout="wide")
+st.set_page_config(page_title="Tes Pemilihan Jurusan SMA", layout="wide")
 
-st.title("🧠 Tes Bakat Diferensial (DAT)")
-st.write("""
-Tes ini mengukur 5 kemampuan spesifik:
-- Verbal Reasoning
-- Numerical Ability
-- Abstract Reasoning
-- Mechanical Reasoning
-- Spatial Ability
-""")
+st.title("🎓 Tes Pemilihan Jurusan SMA")
+st.write("Tes ini membantu menentukan jurusan yang paling sesuai: IPA, IPS, atau Bahasa.")
 
-# ----------------------------
-# BANK SOAL
-# ----------------------------
-
-questions = {
-    "Verbal Reasoning": [
-        {"q": "Antonim dari 'Optimis' adalah:", "o": ["Pesimis", "Yakin", "Semangat", "Percaya"], "a": "Pesimis"},
-        {"q": "Sinonim dari 'Cermat' adalah:", "o": ["Ceroboh", "Teliti", "Cepat", "Lambat"], "a": "Teliti"}
-    ],
-    "Numerical Ability": [
-        {"q": "12 + 15 x 2 =", "o": ["54", "42", "30", "39"], "a": "42"},
-        {"q": "25% dari 200 =", "o": ["25", "50", "75", "100"], "a": "50"}
-    ],
-    "Abstract Reasoning": [
-        {"q": "Pola: 3, 6, 12, 24, ...", "o": ["36", "48", "30", "60"], "a": "48"},
-        {"q": "A, C, F, J, ...", "o": ["O", "N", "P", "M"], "a": "O"}
-    ],
-    "Mechanical Reasoning": [
-        {"q": "Jika gaya diperbesar maka percepatan:", "o": ["Tetap", "Berkurang", "Bertambah", "Hilang"], "a": "Bertambah"},
-        {"q": "Katrol tetap berfungsi untuk:", "o": ["Mengurangi gaya", "Mengubah arah gaya", "Menambah berat", "Menghilangkan beban"], "a": "Mengubah arah gaya"}
-    ],
-    "Spatial Ability": [
-        {"q": "Kubus memiliki berapa rusuk?", "o": ["8", "12", "6", "10"], "a": "12"},
-        {"q": "Bangun 3D dari lingkaran diputar:", "o": ["Kubus", "Tabung", "Prisma", "Balok"], "a": "Tabung"}
-    ]
-}
-
-# ----------------------------
-# FORM TES
-# ----------------------------
-
-st.header("📋 Jawab Semua Pertanyaan")
-
-scores = {}
-total_questions = sum(len(qs) for qs in questions.values())
-answered = 0
-
-for category, qs in questions.items():
-    st.subheader(f"🔹 {category}")
-    score = 0
+questions = [
+    # NUMERIK (IPA)
+    {"q": "Saya menyukai pelajaran Matematika.", "type": "IPA"},
+    {"q": "Saya mudah memahami rumus dan perhitungan.", "type": "IPA"},
+    {"q": "Saya tertarik dengan eksperimen sains.", "type": "IPA"},
     
-    for i, item in enumerate(qs):
-        answer = st.radio(
-            item["q"],
-            item["o"],
-            key=f"{category}_{i}"
-        )
-        if answer:
-            answered += 1
-        if answer == item["a"]:
-            score += 1
+    # SOSIAL (IPS)
+    {"q": "Saya tertarik dengan isu sosial dan ekonomi.", "type": "IPS"},
+    {"q": "Saya suka berdiskusi tentang masyarakat dan politik.", "type": "IPS"},
+    {"q": "Saya menikmati pelajaran sejarah/geografi.", "type": "IPS"},
     
-    scores[category] = score
+    # BAHASA
+    {"q": "Saya suka menulis cerita atau artikel.", "type": "Bahasa"},
+    {"q": "Saya mudah menghafal kosakata bahasa asing.", "type": "Bahasa"},
+    {"q": "Saya tertarik mempelajari budaya dan sastra.", "type": "Bahasa"},
+]
 
-progress = answered / total_questions
-st.progress(progress)
+scores = {"IPA": 0, "IPS": 0, "Bahasa": 0}
 
-# ----------------------------
-# HASIL
-# ----------------------------
+st.header("📋 Jawab Sesuai Kondisi Anda")
 
-if st.button("🔍 Lihat Hasil Tes"):
-    st.success("Tes selesai! Berikut hasil Anda:")
+for i, item in enumerate(questions):
+    answer = st.radio(
+        item["q"],
+        ["Sangat Tidak Setuju", "Tidak Setuju", "Netral", "Setuju", "Sangat Setuju"],
+        key=i
+    )
+    
+    value_map = {
+        "Sangat Tidak Setuju": 1,
+        "Tidak Setuju": 2,
+        "Netral": 3,
+        "Setuju": 4,
+        "Sangat Setuju": 5
+    }
+    
+    scores[item["type"]] += value_map[answer]
 
+if st.button("🔍 Lihat Rekomendasi Jurusan"):
+    
     df = pd.DataFrame({
-        "Kategori": list(scores.keys()),
+        "Jurusan": list(scores.keys()),
         "Skor": list(scores.values())
     })
 
-    df["Maksimal"] = 2
-    df["Persentase (%)"] = (df["Skor"] / df["Maksimal"]) * 100
-
+    st.subheader("📊 Hasil Skor")
     st.dataframe(df)
 
-    # ----------------------------
-    # RADAR CHART INTERAKTIF
-    # ----------------------------
-
-    fig = px.line_polar(
-        df,
-        r="Persentase (%)",
-        theta="Kategori",
-        line_close=True
-    )
-
-    fig.update_traces(fill='toself')
-    fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0,100])),
-        showlegend=False
-    )
-
+    fig = px.bar(df, x="Jurusan", y="Skor", color="Jurusan")
     st.plotly_chart(fig, use_container_width=True)
 
-    # ----------------------------
-    # INTERPRETASI
-    # ----------------------------
+    recommended = df.sort_values("Skor", ascending=False).iloc[0]["Jurusan"]
 
-    strongest = df.sort_values("Persentase (%)", ascending=False).iloc[0]
+    st.header("🎯 Rekomendasi Jurusan")
+    st.success(f"Jurusan yang paling sesuai untuk Anda adalah: {recommended}")
 
-    st.header("📊 Interpretasi Hasil")
-    st.write(f"💡 Kemampuan paling dominan Anda adalah **{strongest['Kategori']}** ({strongest['Persentase (%)']:.0f}%)")
-
-    interpretation_map = {
-        "Verbal Reasoning": "Cocok untuk hukum, komunikasi, pendidikan, sastra.",
-        "Numerical Ability": "Cocok untuk teknik, akuntansi, statistika, data science.",
-        "Abstract Reasoning": "Cocok untuk IT, programming, analisis sistem, riset.",
-        "Mechanical Reasoning": "Cocok untuk teknik mesin, otomotif, teknik industri.",
-        "Spatial Ability": "Cocok untuk arsitektur, desain, teknik sipil."
+    explanation = {
+        "IPA": "Anda cenderung kuat dalam logika, numerik, dan sains. Cocok untuk jurusan IPA.",
+        "IPS": "Anda memiliki minat sosial dan analisis masyarakat. Cocok untuk jurusan IPS.",
+        "Bahasa": "Anda memiliki kecenderungan linguistik dan komunikasi. Cocok untuk jurusan Bahasa."
     }
 
-    st.info(interpretation_map[strongest["Kategori"]])
-    st.warning("Ini adalah simulasi sederhana dan bukan tes psikologi resmi.")
+    st.info(explanation[recommended])
+
+    st.warning("Catatan: Ini adalah tes simulasi sederhana dan bukan tes psikologi resmi.")
