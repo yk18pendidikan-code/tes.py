@@ -4,7 +4,7 @@ import plotly.express as px
 from fpdf import FPDF
 
 st.set_page_config(page_title="Tes Pemilihan Jurusan SMA", layout="wide")
-st.title("🎓 Tes Pemilihan Jurusan SMA – Profesional")
+st.title("🎓 Tes Pemilihan Jurusan SMA – Neutron Murangan")
 st.write("""
 Geser slider sesuai dengan diri Anda:
 
