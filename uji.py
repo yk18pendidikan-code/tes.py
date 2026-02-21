@@ -5,7 +5,7 @@ from fpdf import FPDF
 from io import BytesIO
 
 st.set_page_config(page_title="Tes Pemilihan Jurusan SMA", layout="wide")
-st.title("🎓 Tes Pemilihan Jurusan SMA – Profesional")
+st.title("🎓 Tes Pemilihan Jurusan SMA – Neutron Murangan")
 
 # ----------------------------
 # Kode akses
