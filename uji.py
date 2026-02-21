@@ -16,6 +16,39 @@ Geser slider sesuai dengan diri Anda:
 5 = Sangat Sesuai
 """)
 
+# =========================
+# SISTEM AKSES & BATAS 1X
+# =========================
+
+AKSES_KODE = "neutronmurangan"
+
+if "akses_granted" not in st.session_state:
+    st.session_state.akses_granted = False
+
+if "submitted_once" not in st.session_state:
+    st.session_state.submitted_once = False
+
+# Jika belum login
+if not st.session_state.akses_granted:
+    st.title("🔐 Akses Tes RIASEC Neutron Murangan")
+    kode_input = st.text_input("Masukkan Kode Akses", type="password")
+
+    if st.button("Masuk"):
+        if kode_input == AKSES_KODE:
+            st.session_state.akses_granted = True
+            st.success("Akses diterima ✅")
+            st.rerun()
+        else:
+            st.error("Kode akses salah ❌")
+
+    st.stop()
+
+# Jika sudah pernah submit
+if st.session_state.submitted_once:
+    st.warning("⚠️ Anda sudah mengerjakan tes ini. Tes hanya dapat dikerjakan 1 kali.")
+    st.stop()
+
+
 # ----------------------------
 # Pertanyaan
 # ----------------------------
