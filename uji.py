@@ -2,9 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
+from io import BytesIO
 
 st.set_page_config(page_title="Tes Pemilihan Jurusan SMA", layout="wide")
-st.title("🎓 Tes Pemilihan Jurusan SMA – Neutron Murangan")
+st.title("🎓 Tes Pemilihan Jurusan SMA – Profesional")
 st.write("""
 Geser slider sesuai dengan diri Anda:
 
@@ -50,9 +51,15 @@ for i, item in enumerate(questions):
 # Program Studi
 # ----------------------------
 prodi_map = {
-    "IPA":["Kedokteran","Teknik","Farmasi","Fisika","Kimia","Biologi","Statistika","Keperawatan","Kesehatan Masyarakat","Teknik Elektro","Teknik Mesin","Teknik Sipil"],
-    "IPS":["Manajemen","Akuntansi","Ilmu Hukum","Psikologi","Ilmu Komunikasi","Hubungan Internasional","Sosiologi","Ilmu Politik","Administrasi Negara","Ekonomi Pembangunan"],
-    "Bahasa":["Sastra Indonesia","Sastra Inggris","Pendidikan Bahasa Inggris","Pendidikan Bahasa Indonesia","Linguistik","Ilmu Perpustakaan","Penerjemahan","Jurnalistik"]
+    "IPA":["Kedokteran","Teknik","Farmasi","Fisika","Kimia","Biologi",
+           "Statistika","Keperawatan","Kesehatan Masyarakat","Teknik Elektro",
+           "Teknik Mesin","Teknik Sipil"],
+    "IPS":["Manajemen","Akuntansi","Ilmu Hukum","Psikologi","Ilmu Komunikasi",
+           "Hubungan Internasional","Sosiologi","Ilmu Politik","Administrasi Negara",
+           "Ekonomi Pembangunan"],
+    "Bahasa":["Sastra Indonesia","Sastra Inggris","Pendidikan Bahasa Inggris",
+              "Pendidikan Bahasa Indonesia","Linguistik","Ilmu Perpustakaan",
+              "Penerjemahan","Jurnalistik"]
 }
 
 # ----------------------------
@@ -92,22 +99,32 @@ if st.button("🔍 Lihat Hasil & Rekomendasi"):
         st.write(f"➡ {p}")
 
     # ----------------------------
-    # Export PDF Laporan
+    # Export PDF Laporan (Cloud-Safe)
     # ----------------------------
-    if st.button("📄 Download Laporan PDF"):
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", "B", 16)
-        pdf.cell(0,10,"Laporan Tes Pemilihan Jurusan SMA", ln=True, align="C")
-        pdf.ln(10)
-        pdf.set_font("Arial", "", 12)
-        for i, row in df.iterrows():
-            pdf.cell(0,8,f"{row['Jurusan']}: {row['Persentase (%)']:.1f}%", ln=True)
-        pdf.ln(5)
-        pdf.cell(0,8,f"Jurusan Dominan: {main}", ln=True)
-        pdf.cell(0,8,"Program Studi Cocok:", ln=True)
-        for p in prodi_map[main]:
-            pdf.cell(0,8,f"- {p}", ln=True)
-        pdf.output("Laporan_Tes_Jurusan.pdf")
-        with open("Laporan_Tes_Jurusan.pdf","rb") as f:
-            st.download_button("⬇ Unduh PDF Laporan", f, file_name="Laporan_Tes_Jurusan.pdf")
+    pdf_buffer = BytesIO()
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0,10,"Laporan Tes Pemilihan Jurusan SMA", ln=True, align="C")
+    pdf.ln(10)
+    pdf.set_font("Arial", "", 12)
+
+    # Skor
+    for i, row in df.iterrows():
+        pdf.cell(0,8,f"{row['Jurusan']}: {row['Persentase (%)']:.1f}%", ln=True)
+    pdf.ln(5)
+
+    pdf.cell(0,8,f"Jurusan Dominan: {main}", ln=True)
+    pdf.cell(0,8,"Program Studi Cocok:", ln=True)
+    for p in prodi_map[main]:
+        pdf.cell(0,8,f"- {p}", ln=True)
+
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+
+    st.download_button(
+        label="⬇ Unduh PDF Laporan",
+        data=pdf_buffer,
+        file_name="Laporan_Tes_Jurusan.pdf",
+        mime="application/pdf"
+    )
