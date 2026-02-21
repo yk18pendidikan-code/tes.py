@@ -1,101 +1,178 @@
 import streamlit as st
 import pandas as pd
-import re
+import matplotlib.pyplot as plt
+import numpy as np
 
-st.set_page_config(
-    page_title="Tes Minat & Bakat (RIASEC)",
-    layout="centered"
-)
+st.set_page_config(page_title="Tes Bakat Diferensial (DAT)", layout="wide")
 
-st.title("Tes Minat & Bakat Neutron Murangan - Model RIASEC")
-st.write("Jawablah setiap pernyataan sesuai dengan diri Anda.")
-st.write("Skala: 1 = Sangat Tidak Sesuai | 5 = Sangat Sesuai")
+st.title("🧠 Tes Bakat Diferensial (DAT)")
+st.write("""
+Tes ini mengukur kemampuan spesifik (aptitude):
+- Verbal Reasoning
+- Numerical Ability
+- Abstract Reasoning
+- Mechanical Reasoning
+- Spatial Ability
+""")
 
-# Pertanyaan berdasarkan RIASEC
+# -----------------------------
+# BANK SOAL
+# -----------------------------
+
 questions = {
-    "R": [
-        "Saya senang bekerja dengan alat atau mesin.",
-        "Saya suka kegiatan di luar ruangan.",
-        "Saya tertarik memperbaiki barang rusak.",
-        "Saya menikmati aktivitas fisik.",
-        "Saya suka bekerja dengan tangan."
+    "Verbal Reasoning": [
+        {
+            "question": "Antonim dari 'Optimis' adalah:",
+            "options": ["Pesimis", "Semangat", "Percaya", "Yakin"],
+            "answer": "Pesimis"
+        },
+        {
+            "question": "Kalimat yang paling tepat secara tata bahasa:",
+            "options": [
+                "Dia pergi ke pasar kemarin.",
+                "Dia kemarin pergi ke pasar akan.",
+                "Pergi dia pasar kemarin.",
+                "Kemarin pasar dia pergi akan."
+            ],
+            "answer": "Dia pergi ke pasar kemarin."
+        }
     ],
-    "I": [
-        "Saya suka memecahkan masalah kompleks.",
-        "Saya menikmati penelitian atau eksperimen.",
-        "Saya senang menganalisis data.",
-        "Saya tertarik pada sains atau matematika.",
-        "Saya suka berpikir logis dan sistematis."
+    "Numerical Ability": [
+        {
+            "question": "12 + 15 x 2 = ?",
+            "options": ["54", "42", "30", "39"],
+            "answer": "42"
+        },
+        {
+            "question": "Jika 25% dari 200 adalah:",
+            "options": ["25", "50", "75", "100"],
+            "answer": "50"
+        }
     ],
-    "A": [
-        "Saya menikmati menggambar atau mendesain.",
-        "Saya suka menulis cerita atau puisi.",
-        "Saya tertarik pada musik atau seni pertunjukan.",
-        "Saya senang mengekspresikan diri secara kreatif.",
-        "Saya suka menciptakan ide-ide baru."
+    "Abstract Reasoning": [
+        {
+            "question": "Pola angka: 3, 6, 12, 24, ...",
+            "options": ["36", "48", "30", "60"],
+            "answer": "48"
+        },
+        {
+            "question": "A, C, F, J, ... huruf berikutnya?",
+            "options": ["O", "N", "P", "M"],
+            "answer": "O"
+        }
     ],
-    "S": [
-        "Saya senang membantu orang lain.",
-        "Saya suka mengajar atau membimbing.",
-        "Saya nyaman bekerja dalam tim.",
-        "Saya peduli terhadap kesejahteraan orang lain.",
-        "Saya senang berinteraksi dengan banyak orang."
+    "Mechanical Reasoning": [
+        {
+            "question": "Jika gaya diperbesar, maka percepatan akan:",
+            "options": ["Tetap", "Berkurang", "Bertambah", "Hilangkan"],
+            "answer": "Bertambah"
+        },
+        {
+            "question": "Katrol tetap berfungsi untuk:",
+            "options": [
+                "Mengurangi gaya",
+                "Mengubah arah gaya",
+                "Menambah berat",
+                "Menghilangkan beban"
+            ],
+            "answer": "Mengubah arah gaya"
+        }
     ],
-    "E": [
-        "Saya suka memimpin kelompok.",
-        "Saya senang meyakinkan orang lain.",
-        "Saya tertarik pada bisnis atau wirausaha.",
-        "Saya suka mengambil keputusan penting.",
-        "Saya senang berkompetisi."
-    ],
-    "C": [
-        "Saya suka pekerjaan yang terstruktur.",
-        "Saya teliti dalam mengerjakan tugas.",
-        "Saya nyaman bekerja dengan angka atau data.",
-        "Saya suka membuat perencanaan rinci.",
-        "Saya mengikuti aturan dengan baik."
+    "Spatial Ability": [
+        {
+            "question": "Kubus memiliki berapa rusuk?",
+            "options": ["8", "12", "6", "10"],
+            "answer": "12"
+        },
+        {
+            "question": "Bangun 3D dari lingkaran yang diputar adalah:",
+            "options": ["Kubus", "Tabung", "Prisma", "Balok"],
+            "answer": "Tabung"
+        }
     ]
 }
 
-# Fungsi untuk escape karakter khusus agar aman di JS frontend
-def escape_label(text):
-    return re.sub(r'([.*+?^${}()|\[\]\\])', r'\\\1', text)
+# -----------------------------
+# FORM TES
+# -----------------------------
 
-scores = {key: 0 for key in questions.keys()}
+st.header("📋 Jawab Semua Pertanyaan")
 
-st.subheader("Silakan jawab pertanyaan berikut:")
+scores = {}
+total_questions = {}
 
 for category, qs in questions.items():
-    st.markdown(f"### Bagian {category}")
+    st.subheader(f"🔹 {category}")
+    score = 0
+    total_questions[category] = len(qs)
+    
     for i, q in enumerate(qs):
-        safe_label = escape_label(q)  # escape karakter khusus
-        response = st.slider(
-            label=safe_label,
-            min_value=1,
-            max_value=5,
-            value=3,
+        answer = st.radio(
+            q["question"],
+            q["options"],
             key=f"{category}_{i}"
         )
-        scores[category] += response
+        if answer == q["answer"]:
+            score += 1
+    
+    scores[category] = score
 
-if st.button("Lihat Hasil"):
-    st.subheader("Hasil Tes Anda")
+# -----------------------------
+# HASIL
+# -----------------------------
 
-    df = pd.DataFrame(scores.items(), columns=["Tipe", "Skor"])
-    st.bar_chart(df.set_index("Tipe"))
+if st.button("🔍 Lihat Hasil Tes"):
+    st.success("Tes selesai! Berikut hasil Anda:")
 
-    dominant = max(scores, key=scores.get)
+    df = pd.DataFrame({
+        "Kategori": scores.keys(),
+        "Skor": scores.values(),
+        "Maksimal": total_questions.values()
+    })
 
-    rekomendasi = {
-        "R": "Teknik, Arsitektur, Otomotif, Teknologi Industri",
-        "I": "Ilmu Data, Penelitian, Kedokteran, Sains",
-        "A": "Desain Grafis, Musik, Seni, Penulisan",
-        "S": "Psikologi, Pendidikan, Konseling, Keperawatan",
-        "E": "Bisnis, Manajemen, Marketing, Wirausaha",
-        "C": "Akuntansi, Administrasi, Keuangan, Analis Data"
+    df["Persentase (%)"] = (df["Skor"] / df["Maksimal"]) * 100
+    st.dataframe(df)
+
+    # -----------------------------
+    # RADAR CHART
+    # -----------------------------
+
+    categories = list(scores.keys())
+    values = df["Persentase (%)"].tolist()
+    values += values[:1]
+
+    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
+    angles += angles[:1]
+
+    fig, ax = plt.subplots(figsize=(6,6), subplot_kw=dict(polar=True))
+    ax.plot(angles, values)
+    ax.fill(angles, values, alpha=0.25)
+
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(categories)
+    ax.set_yticklabels([])
+    ax.set_title("Profil Bakat Diferensial (%)")
+
+    st.pyplot(fig)
+
+    # -----------------------------
+    # INTERPRETASI
+    # -----------------------------
+
+    st.header("📊 Interpretasi")
+
+    strongest = df.sort_values("Persentase (%)", ascending=False).iloc[0]
+
+    st.write(f"💡 Kemampuan paling dominan Anda adalah **{strongest['Kategori']}** ({strongest['Persentase (%)']:.0f}%).")
+
+    interpretations = {
+        "Verbal Reasoning": "Cocok untuk hukum, komunikasi, pendidikan, sastra.",
+        "Numerical Ability": "Cocok untuk teknik, akuntansi, statistika, data science.",
+        "Abstract Reasoning": "Cocok untuk IT, programming, analisis sistem, riset.",
+        "Mechanical Reasoning": "Cocok untuk teknik mesin, otomotif, teknik industri.",
+        "Spatial Ability": "Cocok untuk arsitektur, desain, teknik sipil."
     }
 
-    st.success(f"Tipe dominan Anda adalah: {dominant}")
-    st.info(f"Rekomendasi bidang yang cocok: {rekomendasi[dominant]}")
+    st.info(interpretations[strongest["Kategori"]])
 
-    st.caption("Tes ini berbasis teori RIASEC (Holland Code) dan bersifat eksploratif.")
+    st.warning("Catatan: Ini adalah simulasi sederhana Tes DAT dan bukan tes psikologi resmi.")
